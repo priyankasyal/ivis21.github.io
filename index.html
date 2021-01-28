@@ -30,13 +30,61 @@
 
 <!-- Create a div where the graph will take place -->
 <div id="my_dataviz"></div>
+<p>Please hover to see branch groups and click to see individual student!</p>
+<div id="legend" style="font-family:helvetica">
+  <br>LEGEND <br> <br>
+
+  <svg height="20" width="200" id="CS" onclick="setCS()">
+    <circle cx="10" cy="10" r="7" fill="#8c271e"/>
+    <text x="30" y="15" font-family="helvetica" font-size="15" fill="#8c271e">Computer Science</text>
+  </svg>
+  <br>
+
+  <svg height="20" width="200">
+    <circle cx="10" cy="10" r="7" fill="#19381f"/>
+    <text x="30" y="15" font-family="helvetica" font-size="15" fill="#19381f">Media Technology</text>
+  </svg>
+  <br>
+
+  <svg height="20" width="300">
+    <circle cx="10" cy="10" r="7" fill="#2ec4b6"/>
+    <text x="30" y="15" font-family="helvetica" font-size="15" fill="#2ec4b6">Human Computer Interaction</text>
+  </svg>
+  <br>
+
+  <svg height="20" width="200">
+    <circle cx="10" cy="10" r="7" fill="#336699"/>
+    <text x="30" y="15" font-family="helvetica" font-size="15" fill="#336699">Information Systems</text>
+  </svg>
+  <br>
+
+  <svg height="20" width="200">
+    <circle cx="10" cy="10" r="7" fill="#849324"/>
+    <text x="30" y="15" font-family="helvetica" font-size="15" fill="#849324">Media Management</text>
+  </svg>
+  <br>
+
+
+  <svg height="20" width="200">
+    <circle cx="10" cy="10" r="7" fill="#31908dff"/>
+    <text x="30" y="15" font-family="helvetica" font-size="15" fill="#31908dff">Transport</text>
+  </svg>
+  <br>
+  
+  <svg height="20" width="200">
+    <circle cx="10" cy="10" r="7" fill="#81908dff"/>
+    <text x="30" y="15" font-family="helvetica" font-size="15" fill="#81908dff">Other</text>
+  </svg>
+  <br>
+
+</div>
 
 <script>
 
 // set the dimensions and margins of the graph
 var margin = {top: 30, right: 50, bottom: 10, left: 50},
   width = 1500 - margin.left - margin.right,
-  height = 900 - margin.top - margin.bottom;
+  height = 500 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
 var svg = d3.select("#my_dataviz")
@@ -49,14 +97,15 @@ var svg = d3.select("#my_dataviz")
         "translate(" + margin.left + "," + margin.top + ")");
 
 // Parse the Data
-d3.csv("https://raw.githubusercontent.com/priyankasyal/ivis21/main/ivis4.csv", function(data) {
+d3.csv("https://raw.githubusercontent.com/priyankasyal/ivis21/main/ivis4.csv",
+function(data) {
 
   // Color scale: give me a specie name, I return a color
-  var keys = ["CS","IMT", "HCI", "IS", "MM","Other","Transport"]
+  var keys = ["CS","MT", "HCI", "IS", "MM","Other","Transport"]
 
   var color = d3.scaleOrdinal()
     .domain(keys)
-    .range([ "#000","#440154ff", "#21908dff", "#fde725ff", "#51908dff", "#81908dff","#31908dff"])
+    .range([ "#8c271e","#19381f", "#2ec4b6", "#336699", "#849324", "#81908dff","#31908dff"])
 
   // Here I set the list of dimension manually to control the order of axis:
   dimensions = d3.keys(data[0]).filter(function(d) { return (d != "alias" && d!= "Branch") })
@@ -77,7 +126,9 @@ d3.csv("https://raw.githubusercontent.com/priyankasyal/ivis21/main/ivis4.csv", f
     .domain(dimensions);
 
     var tooltipDiv;
-  // Highlight the specie that is hovered
+  
+
+  // Highlight the name that is hovered
   var highlight = function(d){
 
       tooltipDiv = d3.select("body").append("div")
@@ -90,19 +141,19 @@ d3.csv("https://raw.githubusercontent.com/priyankasyal/ivis21/main/ivis4.csv", f
                          .style("left", (d3.event.pageX) + "px")
                          .style("top", (d3.event.pageY - 28) + "px");
                      
-        
     selected_specie = d.Branch
-    
 
     // first every group turns grey
     d3.selectAll(".line")
       .transition().duration(200)
       .style("stroke", "lightgrey")
       .style("opacity", "0.2")
-    // Second the hovered specie takes its color
+
+    // Second the hovered alias takes its color
     d3.selectAll("." + selected_specie)
       .transition().duration(200)
       .style("stroke", color(selected_specie))
+      .style("stroke-width", 4)
       .style("opacity", "1")
   }
 
@@ -112,8 +163,9 @@ d3.csv("https://raw.githubusercontent.com/priyankasyal/ivis21/main/ivis4.csv", f
                       .duration(500)
                       .style("opacity", 0);
     d3.selectAll(".line")
-      .transition().duration(200).delay(1000)
+      .transition().duration(700)
       .style("stroke", function(d){ return( color(d.Branch))} )
+      .style("stroke-width", 1)
       .style("opacity", "1")
   }
 
@@ -122,41 +174,26 @@ d3.csv("https://raw.githubusercontent.com/priyankasyal/ivis21/main/ivis4.csv", f
       return d3.line()(dimensions.map(function(p) { return [x(p), y[p](d[p])]; }));
   }
 
-  // Draw the lines
-  
-  svg.selectAll("mydots")
-    .data(keys)
-    .enter()
-    .append("circle")
-      .attr("cx", 100)
-      .attr("cy", function(d,i){ return 800 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
-      .attr("r", 7)
-      .style("fill", function(d){ return color(d)})
-
-  // Add one dot in the legend for each name.
-  svg.selectAll("mylabels")
-    .data(keys)
-    .enter()
-    .append("text")
-      .attr("x", 120)
-      .attr("y", function(d,i){ return 800 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
-      .style("fill", function(d){ return color(d)})
-      .text(function(d){ return d})
-      .attr("text-anchor", "left")
-      .style("alignment-baseline", "middle")
-
+  //Draw the lines for each name
   svg
     .selectAll("myPath")
     .data(data)
     .enter()
     .append("path")
-      .attr("class", function (d) { return "line " + d.Branch } ) // 2 class for each line: 'line' and the group name
+      .attr("class", function (d) { return "line " + d.Branch} ) // 2 class for each line: 'line' and the group name
       .attr("d",  path)
       .style("fill", "none" )
       .style("stroke", function(d){ return( color(d.Branch))} )
-      .style("opacity", 0.8)
+      .style("stroke-width", 1)
+      .style("opacity", 1)
       .on("mouseover", highlight)
+      .on('click', function(d, i) {
+        d3.select(this)
+        .style("stroke", "Orange")
+        .style("stroke-width", 4)
+        .style("opacity", "1");})
       .on("mouseleave", doNotHighlight )
+
 
   // Draw the axis:
   svg.selectAll("myAxis")
@@ -176,8 +213,5 @@ d3.csv("https://raw.githubusercontent.com/priyankasyal/ivis21/main/ivis4.csv", f
       .style("fill", "black")
 
 })
-
-
-
-
 </script>
+
